@@ -355,7 +355,10 @@ FEATURES = {
     'MODE_CREATION_FOR_TESTING': False,
 
     # Courseware search feature
-    'ENABLE_COURSEWARE_SEARCH': False,
+    'ENABLE_COURSEWARE_SEARCH': True,
+
+    # Dashboard search feature
+    'ENABLE_DASHBOARD_SEARCH': True,
 
     # Dashboard search feature
     'ENABLE_DASHBOARD_SEARCH': False,
@@ -382,7 +385,7 @@ FEATURES = {
     },
 
     # Course discovery feature
-    'ENABLE_COURSE_DISCOVERY': False,
+    'ENABLE_COURSE_DISCOVERY': True,
 }
 
 # Ignore static asset files on import which match this pattern
