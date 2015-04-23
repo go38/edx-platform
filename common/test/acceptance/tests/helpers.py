@@ -1,23 +1,34 @@
 """
 Test helper functions and base classes.
 """
+import inspect
 import json
 import unittest
 import functools
+import operator
+import pprint
 import requests
 import os
+from contextlib import contextmanager
 from datetime import datetime
 from path import path
 from bok_choy.javascript import js_defined
 from bok_choy.web_app_test import WebAppTest
-from bok_choy.promise import EmptyPromise
+from bok_choy.promise import EmptyPromise, Promise
 from opaque_keys.edx.locator import CourseLocator
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING
+from openedx.core.lib.tests.assertions.events import assert_event_matches, is_matching_event
 from xmodule.partitions.partitions import UserPartition
 from xmodule.partitions.tests.test_partitions import MockUserPartitionScheme
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+
+from ..pages.common import BASE_URL
+
+
+MAX_EVENTS_IN_FAILURE_OUTPUT = 20
 
 
 def skip_if_browser(browser):
@@ -353,6 +364,144 @@ class EventsTestMixin(object):
                     actual_referer.endswith(expected_referers[index]),
                     "Refer '{0}' does not have correct suffix, '{1}'.".format(actual_referer, expected_referers[index])
                 )
+
+    @contextmanager
+    def capture_events(self, event_filter=None, number_of_matches=1, captured_events=None):
+        start_time = datetime.utcnow()
+
+        yield
+
+        events = self.wait_for_events(
+            start_time=start_time, event_filter=event_filter, number_of_matches=number_of_matches)
+
+        if captured_events is not None and hasattr(captured_events, 'append') and callable(captured_events.append):
+            for event in events:
+                captured_events.append(event)
+
+    def wait_for_events(self, start_time=None, event_filter=None, number_of_matches=1):
+        if start_time is None:
+            start_time = self.start_time
+
+        def has_matching_events():
+            matching_events = self.get_matching_events_from_time(start_time=start_time, event_filter=event_filter)
+            return (len(matching_events) >= number_of_matches, matching_events)
+
+        return Promise(
+            has_matching_events,
+            CollectedEventsDescription(
+                'Waiting for {number_of_matches} events to match the filter:\n{event_filter}'.format(
+                    number_of_matches=number_of_matches,
+                    event_filter=self.event_filter_to_descriptive_string(event_filter),
+                ),
+                functools.partial(self.get_matching_events_from_time, start_time=start_time, event_filter={})
+            )
+        ).fulfill()
+
+    def get_matching_events_from_time(self, start_time=None, event_filter=None):
+        if start_time is None:
+            start_time = self.start_time
+
+        if isinstance(event_filter, dict):
+            event_filter = functools.partial(is_matching_event, event_filter)
+        elif not callable(event_filter):
+            raise ValueError(
+                'event_filter must either be a dict or a callable function with as single "event" parameter that '
+                'returns a boolean value.'
+            )
+
+        matching_events = []
+        cursor = self.event_collection.find(
+            {
+                "time": {
+                    "$gte": start_time
+                }
+            }
+        ).sort("time", ASCENDING)
+        for event in cursor:
+            matches = False
+            try:
+                del event['_id']
+                if event_filter is not None:
+                    matches = event_filter(event)
+            except AssertionError:
+                continue
+            else:
+                if matches is None or matches:
+                    matching_events.append(event)
+        return matching_events
+
+    @contextmanager
+    def assert_matching_events_emitted(self, event_filter, num_events=1):
+        with self.capture_events(event_filter, num_events, []):
+            yield
+
+    def assert_event_sequences_match(self, expected_events, actual_events):
+        for expected_event, actual_event in zip(expected_events, actual_events):
+            assert_event_matches(expected_event, actual_event)
+
+    def assert_no_matching_events_emitted(self, event_filter):
+        matching_events = self.get_matching_events_from_time(event_filter=event_filter)
+
+        description = CollectedEventsDescription(
+            'Events unexpected matched the filter:\n' + self.event_filter_to_descriptive_string(event_filter),
+            lambda: matching_events
+        )
+
+        self.assertEquals(len(matching_events), 0, description)
+
+    def relative_path_to_absolute_uri(self, relative_path):
+        return '/'.join([BASE_URL.rstrip('/'), relative_path.lstrip('/')])
+
+    def event_filter_to_descriptive_string(self, event_filter):
+        message = ''
+        if callable(event_filter):
+            file_name = '(unknown)'
+            try:
+                file_name = inspect.getsourcefile(event_filter)
+            except TypeError:
+                pass
+
+            try:
+                list_of_source_lines, line_no = inspect.getsourcelines(event_filter)
+            except IOError:
+                pass
+            else:
+                message = '{file_name}:{line_no}\n{hr}\n{event_filter}\n{hr}'.format(
+                    event_filter=''.join(list_of_source_lines).rstrip(),
+                    file_name=file_name,
+                    line_no=line_no,
+                    hr='-' * 20,
+                )
+
+        if not message:
+            message = '{hr}\n{event_filter}\n{hr}'.format(
+                event_filter=pprint.pformat(event_filter),
+                hr='-' * 20,
+            )
+
+        return message
+
+
+class CollectedEventsDescription(object):
+
+    def __init__(self, description, get_events_func):
+        self.description = description
+        self.get_events_func = get_events_func
+
+    def __str__(self):
+        message_lines = [
+            self.description,
+            'Events:'
+        ]
+        events = self.get_events_func()
+        events.sort(key=operator.itemgetter('time'), reverse=True)
+        for event in events[:MAX_EVENTS_IN_FAILURE_OUTPUT]:
+            message_lines.append(pprint.pformat(event))
+        if len(events) > MAX_EVENTS_IN_FAILURE_OUTPUT:
+            message_lines.append(
+                'Too many events to display, the remaining events were omitted. Run locally to diagnose.')
+
+        return '\n\n'.join(message_lines)
 
 
 class UniqueCourseTest(WebAppTest):
