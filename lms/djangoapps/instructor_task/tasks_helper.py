@@ -723,10 +723,10 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
         course_structure = api.course_structure(course_id)
         blocks = course_structure['blocks']
         problems = OrderedDict()
-        for block_name, block in blocks:
-            if block['type'] == 'problem' and block['graded']:
-                header_name = "{}".format(block['display_name'])
-                problems[block_name] = header_name
+        for block in blocks:
+            if blocks[block]['type'] == 'problem' and blocks[block]['graded']:
+                header_name = "{}".format(blocks[block]['display_name'])
+                problems[block] = header_name
     # TODO: Do something more reasonable here
     except errors.CourseStructureNotAvailableError:
         return task_progress.update_task_state(extra_meta={'step': 'Waiting for course structure'})
