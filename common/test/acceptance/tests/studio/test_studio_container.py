@@ -1013,13 +1013,13 @@ class UnitPublishingTest(ContainerBase):
         self.assertTrue(unit_page.shows_inherited_staff_lock())
 
     # TODO: need to work with Jay/Christine to get testing of "Preview" working.
-    # def test_preview(self):
-    #     unit = self.go_to_unit_page()
-    #     add_discussion(unit)
-    #     unit.preview()
-    #     self.assertEqual(2, self.courseware.num_xblock_components)
-    #     self.assertEqual('html', self.courseware.xblock_component_type(0))
-    #     self.assertEqual('discussion', self.courseware.xblock_component_type(1))
+    def test_preview(self):
+        unit = self.go_to_unit_page()
+        add_discussion(unit)
+        unit.preview()
+        self.assertEqual(2, self.courseware.num_xblock_components)
+        self.assertEqual('html', self.courseware.xblock_component_type(0))
+        self.assertEqual('discussion', self.courseware.xblock_component_type(1))
 
 
 class DisplayNameTest(ContainerBase):
