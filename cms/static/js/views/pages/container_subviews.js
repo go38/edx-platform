@@ -50,7 +50,7 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
         });
 
         /**
-         * A controller for updating the "View Live" and "Preview" buttons.
+         * A controller for updating the "View Live" button.
          */
         var PreviewActionController = ContainerStateListenerView.extend({
             shouldRefresh: function(model) {

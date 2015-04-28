@@ -21,8 +21,8 @@
                             </a>
                         </li>
                         <li class="action-item action-preview nav-item">
-                            <a href="${draft_preview_link}" class="button button-preview action-button is-disabled" aria-disabled="true">
-                                <span class="action-button-text">Preview Changes</span>
+                            <a href="${draft_preview_link}" class="button button-preview action-button">
+                                <span class="action-button-text">Preview</span>
                             </a>
                         </li>
                     % else:
