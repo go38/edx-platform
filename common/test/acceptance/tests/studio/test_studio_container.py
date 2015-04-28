@@ -1016,7 +1016,11 @@ class UnitPublishingTest(ContainerBase):
     def test_preview(self):
         unit = self.go_to_unit_page()
         add_discussion(unit)
+        unit.publish_action.click()
+
         unit.preview()
+        self._verify_components_visible(['html', 'discussion'])
+
         self.assertEqual(2, self.courseware.num_xblock_components)
         self.assertEqual('html', self.courseware.xblock_component_type(0))
         self.assertEqual('discussion', self.courseware.xblock_component_type(1))
