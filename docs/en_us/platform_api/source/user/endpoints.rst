@@ -20,3 +20,15 @@ The following tasks and endpoints are currently supported.
        Information>`
      - PATCH /api/user/v0/accounts/{username}/{“key”:”value”} “application
        /merge-patch+json”
+   * - :ref:`Get a user's preferences information <Get and Update the User's
+       Preferences Information>`
+     - 
+   * - :ref:`Update a user's preferences information <Get and Update the User's
+       Preferences Information>`
+     - 
+   * - :ref:`Get a user's preferences details <Get and Update the User's
+       Preferences Details>`
+     -
+   * - :ref:`Update a user's preferences details <Get and Update the User's
+       Preferences Details>`
+     - 

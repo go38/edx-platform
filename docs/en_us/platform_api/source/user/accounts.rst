@@ -1,5 +1,5 @@
 ##################################################
-User Accounts API Module
+User Accounts API
 ##################################################
 
 This page contains information on using the User Accounts API to
@@ -13,7 +13,7 @@ complete these actions:
 Get and Update the User's Account Information
 **********************************************
 
-.. autoclass:: user_api.accounts.views.AccountView
+.. .. autoclass:: user_api.accounts.views.AccountView
 
 **Example response showing the user's account information**
 
