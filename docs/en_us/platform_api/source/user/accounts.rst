@@ -13,7 +13,7 @@ complete these actions:
 Get and Update the User's Account Information
 **********************************************
 
-.. .. autoclass:: user_api.accounts.views.AccountView
+.. autoclass:: user_api.accounts.views.AccountView
 
 **Example response showing the user's account information**
 
