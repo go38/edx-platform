@@ -23,7 +23,6 @@ from track.views import task_track
 from util.file import course_filename_prefix_generator, UniversalNewlineIterator
 from xmodule.modulestore.django import modulestore
 from xmodule.split_test_module import get_split_user_partitions
-from course_structure_api.v0 import api, errors
 
 from courseware.courses import get_course_by_id, get_problems_in_section
 from courseware.grades import iterate_grades_for, iterate_problem_grades_for
@@ -36,6 +35,7 @@ from instructor_task.models import ReportStore, InstructorTask, PROGRESS
 from lms.djangoapps.lms_xblock.runtime import LmsPartitionService
 from openedx.core.djangoapps.course_groups.cohorts import get_cohort
 from openedx.core.djangoapps.course_groups.models import CourseUserGroup
+from openedx.core.djangoapps.content.course_structures.models import CourseStructure
 from opaque_keys.edx.keys import UsageKey
 from openedx.core.djangoapps.course_groups.cohorts import add_user_to_cohort, is_course_cohorted
 from student.models import CourseEnrollment
@@ -720,14 +720,20 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
     #   - Then iterate through each problem column, appending grade if appropriate
 
     try:
-        course_structure = api.course_structure(course_id)
-        blocks = course_structure['blocks']
+        course_structure = CourseStructure.objects.get(course_id=course_id)
+        blocks = course_structure.ordered_blocks
         problems = OrderedDict()
         for block in blocks:
-            if blocks[block]['type'] == 'problem' and blocks[block]['graded'] == True:
-                header_name = "{}".format(blocks[block]['display_name'])
+            if blocks[block]['block_type'] == 'problem' and blocks[block]['graded'] == True:
+                parent = blocks[block]['parent']
+                grandparent = blocks[parent]['parent']
+                header_name = "({grandparent_type}) [{grandparent}] - [{block}]".format(
+                    block=blocks[block]['display_name'],
+                    grandparent_type = blocks[grandparent]['block_type'],
+                    grandparent=blocks[grandparent]['display_name']
+                )
                 problems[block] = header_name
-    except errors.CourseStructureNotAvailableError:
+    except CourseStructure.DoesNotExist:
         return task_progress.update_task_state(extra_meta={'step': 'Generating course structure. Please refresh and try again.'})
 
     # Just generate the static fields for now.
