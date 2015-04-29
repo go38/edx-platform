@@ -855,6 +855,46 @@ def submit_photos_for_verification(request):
     return HttpResponse(200)
 
 
+def _get_location_id(photo_verification):
+    try:
+        ver_status = VerificationStatus.objects.filter(checkpoint__photo_verification=photo_verification).latest()
+        return ver_status.location_id
+    except VerificationStatus.ObjectDoesNotExist:
+        return ""
+
+
+def _get_user_attempts(course_key, user_id, related_assessment):
+
+    return VerificationStatus.objects.filter(
+        user_id=user_id,
+        checkpoint__course_id=course_key,
+        checkpoint__checkpoint_name=related_assessment,
+        status="submitted"
+    ).count()
+
+
+def _send_email(course_key, user_id, relates_assessment, photo_verification, status):
+    try:
+        user_attempts = _get_user_attempts(course_key, user_id, relates_assessment)
+        location_id = _get_location_id(photo_verification)
+        usage_key = UsageKey.from_string(location_id)
+        ver_block = modulestore().get_item(usage_key)
+        allowed_attempts = ver_block.attempts
+
+        if status == "approved":
+            # TODO: Render the template for success
+            text = "The verification has been approved"
+        if status in ["denied", "error"]:
+            # TODO: Render the template for failure
+            text = "The verification failed"
+            left_attempts = allowed_attempts - user_attempts
+            current_date = datetime.now()
+            # verification_open = ver_block.start_date <= current_date <= ver_block.end_date
+            # send_email()
+    except:
+        log.error("The email sending failed")
+
+
 @require_POST
 @csrf_exempt  # SS does its own message signing, and their API won't have a cookie value
 def results_callback(request):
@@ -936,6 +976,12 @@ def results_callback(request):
         course_enrollment = CourseEnrollment.get_or_create_enrollment(attempt.user, course_id)
         course_enrollment.emit_event(EVENT_NAME_USER_REVERIFICATION_REVIEWED_BY_SOFTWARESECURE)
     VerificationStatus.add_status_from_checkpoints(checkpoints=checkpoints, user=attempt.user, status=status)
+    # If this is re-verification then send the update email
+    if checkpoints:
+        user_id = attempt.user.id
+        course_key = checkpoints[0].course_id
+        relates_assessment = checkpoints[0].checkpoint_name
+        _send_email(course_key, user_id, relates_assessment, attempt, status)
     return HttpResponse("OK!")
 
 
