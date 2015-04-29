@@ -727,9 +727,9 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
             if blocks[block]['block_type'] == 'problem' and blocks[block]['graded'] == True:
                 parent = blocks[block]['parent']
                 grandparent = blocks[parent]['parent']
-                header_name = "({grandparent_type}) [{grandparent}] - [{block}]".format(
+                header_name = "({grandparent_format}) [{grandparent}] - [{block}]".format(
                     block=blocks[block]['display_name'],
-                    grandparent_type = blocks[grandparent]['block_type'],
+                    grandparent_format = blocks[grandparent]['format'],
                     grandparent=blocks[grandparent]['display_name']
                 )
                 problems[block] = header_name
