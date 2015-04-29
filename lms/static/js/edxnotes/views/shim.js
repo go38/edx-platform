@@ -63,7 +63,7 @@ define([
             // Add screen reader label for edit mode.
             var index = this.annotator.editor.fields.length -1;
             var tagsField = 'annotator-field-' + index;
-            $('<label class="sr" for='+ tagsField +'>Edit tags</label>').insertBefore(
+            $('<label class="sr" for='+ tagsField +'>' + _t('Edit tags') + '</label>').insertBefore(
                 $('#'+tagsField, this.wrapper)
             );
             return this;
@@ -216,7 +216,7 @@ define([
      **/
     Annotator.prototype._setupEditor = _.compose(
         function () {
-            $('<label class="sr" for="annotator-field-0">Edit note</label>').insertBefore(
+            $('<label class="sr" for="annotator-field-0">' + _t('Edit note') + '</label>').insertBefore(
                 $('#annotator-field-0', this.wrapper)
             );
             return this;
