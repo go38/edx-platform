@@ -1012,11 +1012,9 @@ class UnitPublishingTest(ContainerBase):
         unit_page.toggle_staff_lock(inherits_staff_lock=True)
         self.assertTrue(unit_page.shows_inherited_staff_lock())
 
-    # TODO: need to work with Jay/Christine to get testing of "Preview" working.
     def test_preview(self):
         unit = self.go_to_unit_page()
         add_discussion(unit)
-        unit.publish_action.click()
 
         unit.preview()
         self._verify_components_visible(['html', 'discussion'])
