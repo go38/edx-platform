@@ -367,6 +367,7 @@ def _index_bulk_op(request, course_key, chapter, section, position):
 
     staff_access = has_access(user, 'staff', course)
     registered = registered_for_course(course, user)
+    is_preview = 'preview' in request.META.get('HTTP_HOST')
     if not registered:
         # TODO (vshnayder): do course instructors need to be registered to see course?
         log.debug(u'User %s tried to view course %s but is not enrolled', user, course.location.to_deprecated_string())
@@ -427,7 +428,7 @@ def _index_bulk_op(request, course_key, chapter, section, position):
 
         now = datetime.now(UTC())
         effective_start = _adjust_start_date_for_beta_testers(user, course, course_key)
-        if staff_access and now < effective_start:
+        if not is_preview and staff_access and now < effective_start:
             # Disable student view button if user is staff and
             # course is not yet visible to students.
             context['disable_student_access'] = True
@@ -702,7 +703,7 @@ def course_info(request, course_id):
 
         now = datetime.now(UTC())
         effective_start = _adjust_start_date_for_beta_testers(request.user, course, course_key)
-        if staff_access and now < effective_start:
+        if 'preview' not in request.META.get('HTTP_HOST') and staff_access and now < effective_start:
             # Disable student view button if user is staff and
             # course is not yet visible to students.
             context['disable_student_access'] = True

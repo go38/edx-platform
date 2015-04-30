@@ -22,6 +22,7 @@ from xmodule.error_module import ErrorDescriptor
 from xmodule.x_module import XModule, DEPRECATION_VSCOMPAT_EVENT
 from xmodule.split_test_module import get_split_user_partitions
 from xmodule.partitions.partitions import NoSuchUserPartitionError, NoSuchUserPartitionGroupError
+from xmodule.util.django import get_current_request_hostname
 
 from external_auth.models import ExternalAuthMap
 from courseware.masquerade import get_masquerade_role, is_masquerading_as_student
@@ -436,7 +437,8 @@ def _has_access_descriptor(user, action, descriptor, course_key=None):
                 descriptor,
                 course_key=course_key
             )
-            if now > effective_start:
+            hostname = get_current_request_hostname()
+            if 'preview' in hostname or now > effective_start:
                 # after start date, everyone can see it
                 debug("Allow: now > effective start date")
                 return True
