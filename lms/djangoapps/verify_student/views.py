@@ -57,6 +57,7 @@ from util.date_utils import get_default_time_display
 from eventtracking import tracker
 import analytics
 from courseware.url_helpers import get_redirect_url
+from django.contrib.auth.models import User
 
 log = logging.getLogger(__name__)
 
@@ -855,44 +856,33 @@ def submit_photos_for_verification(request):
     return HttpResponse(200)
 
 
-def _get_location_id(photo_verification):
-    try:
-        ver_status = VerificationStatus.objects.filter(checkpoint__photo_verification=photo_verification).latest()
-        return ver_status.location_id
-    except VerificationStatus.ObjectDoesNotExist:
-        return ""
-
-
-def _get_user_attempts(course_key, user_id, related_assessment):
-
-    return VerificationStatus.objects.filter(
-        user_id=user_id,
-        checkpoint__course_id=course_key,
-        checkpoint__checkpoint_name=related_assessment,
-        status="submitted"
-    ).count()
-
-
 def _send_email(course_key, user_id, relates_assessment, photo_verification, status):
     try:
-        user_attempts = _get_user_attempts(course_key, user_id, relates_assessment)
-        location_id = _get_location_id(photo_verification)
+        user = User.objects.get(id=user_id)
+        location_id = VerificationStatus.get_location_id(photo_verification)
         usage_key = UsageKey.from_string(location_id)
-        ver_block = modulestore().get_item(usage_key)
-        allowed_attempts = ver_block.attempts
+        course = modulestore().get_course(course_key)
+        usage_key = usage_key.replace(course_key=course_key)
+        redirect_url = get_redirect_url(course_key, usage_key)
+        from_address = microsite.get_value(
+            'email_from_address',
+            settings.DEFAULT_FROM_EMAIL
+        )
+        subject = render_to_string('emails/reverification_processed_subject.txt', {})
+        # Email subject *must not* contain newlines
+        subject = ''.join(subject.splitlines())
+        context = {
+            "status": status,
+            "course_name": course.display_name_with_default,
+            "assessment": relates_assessment,
+            "courseware_url": redirect_url
+        }
 
-        if status == "approved":
-            # TODO: Render the template for success
-            text = "The verification has been approved"
-        if status in ["denied", "error"]:
-            # TODO: Render the template for failure
-            text = "The verification failed"
-            left_attempts = allowed_attempts - user_attempts
-            current_date = datetime.now()
-            # verification_open = ver_block.start_date <= current_date <= ver_block.end_date
-            # send_email()
-    except:
-        log.error("The email sending failed")
+        message = render_to_string('emails/reverification_processed.txt', context)
+        user.email_user(subject, message, from_address)
+
+    except Exception as exp:
+        log.error("The email for re-verification sending failed for user_id {}".format(user.id))
 
 
 @require_POST

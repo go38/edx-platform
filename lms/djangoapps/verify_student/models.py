@@ -1062,6 +1062,24 @@ class VerificationStatus(models.Model):
 
             cls.objects.create(checkpoint=checkpoint, user=user, status=status, location_id=location_id)
 
+    @classmethod
+    def get_location_id(cls, photo_verification):
+        try:
+            ver_status = cls.objects.filter(checkpoint__photo_verification=photo_verification).latest()
+            return ver_status.location_id
+        except cls.ObjectDoesNotExist:
+            return ""
+
+    @classmethod
+    def get_user_attempts(cls, course_key, user_id, related_assessment):
+
+        return cls.objects.filter(
+            user_id=user_id,
+            checkpoint__course_id=course_key,
+            checkpoint__checkpoint_name=related_assessment,
+            status="submitted"
+        ).count()
+
 
 class InCourseReverificationConfiguration(ConfigurationModel):
     """Configure in-course re-verification.
