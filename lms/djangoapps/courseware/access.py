@@ -438,7 +438,7 @@ def _has_access_descriptor(user, action, descriptor, course_key=None):
                 course_key=course_key
             )
             hostname = get_current_request_hostname()
-            if 'preview' in hostname or now > effective_start:
+            if hostname and 'preview' in hostname or now > effective_start:
                 # after start date, everyone can see it
                 debug("Allow: now > effective start date")
                 return True
