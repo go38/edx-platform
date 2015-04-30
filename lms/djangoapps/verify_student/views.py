@@ -862,14 +862,13 @@ def _send_email(course_key, user_id, relates_assessment, photo_verification, sta
         location_id = VerificationStatus.get_location_id(photo_verification)
         usage_key = UsageKey.from_string(location_id)
         course = modulestore().get_course(course_key)
-        usage_key = usage_key.replace(course_key=course_key)
-        redirect_url = get_redirect_url(course_key, usage_key)
+        redirect_url = get_redirect_url(course_key, usage_key.replace(course_key=course_key))
         from_address = microsite.get_value(
             'email_from_address',
             settings.DEFAULT_FROM_EMAIL
         )
         subject = render_to_string('emails/reverification_processed_subject.txt', {})
-        # Email subject *must not* contain newlines
+        # Email subject must not contain newlines
         subject = ''.join(subject.splitlines())
         context = {
             "status": status,
@@ -877,6 +876,31 @@ def _send_email(course_key, user_id, relates_assessment, photo_verification, sta
             "assessment": relates_assessment,
             "courseware_url": redirect_url
         }
+
+        ver_block = modulestore().get_item(usage_key)
+        allowed_attempts = ver_block.attempts
+        user_attempts = VerificationStatus.get_user_attempts(course_key, user_id, relates_assessment)
+        left_attempts = allowed_attempts - user_attempts
+        is_attempt_allowed = (allowed_attempts - user_attempts) > 0
+        current_date = datetime.datetime.now()
+        if ver_block.due:
+            verification_open = current_date <= ver_block.due
+        else:
+            verification_open = True
+        context["left_attempts"] = left_attempts
+        context["is_attempt_allowed"] = is_attempt_allowed
+        context["verification_open"] = verification_open
+        context["due_date"] = ver_block.due
+
+        re_verification_link = reverse(
+            'verify_student_incourse_reverify',
+            args=(
+                unicode(course_key),
+                unicode(relates_assessment),
+                unicode(location_id)
+            )
+        )
+        context["reverify_link"] = re_verification_link
 
         message = render_to_string('emails/reverification_processed.txt', context)
         user.email_user(subject, message, from_address)
