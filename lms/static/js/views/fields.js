@@ -571,7 +571,9 @@
             events: {
                 'click .u-field-upload-button': 'clickedUploadButton',
                 'click .u-field-remove-button': 'clickedRemoveButton',
-                'click .upload-submit': 'clickedUploadButton'
+                'click .upload-submit': 'clickedUploadButton',
+                'focus .upload-button-input': 'showHoverState',
+                'focusout .upload-button-input':'hideHoverState'
             },
 
             initialize: function (options) {
@@ -595,6 +597,18 @@
                 this.updateButtonsVisibility();
                 this.watchForPageUnload();
                 return this;
+            },
+
+            showHoverState: function () {
+              $('.u-field-upload-button').css({
+                  'opacity': 0.6,
+                  'background-color': 'black'
+
+              });
+            },
+
+            hideHoverState: function () {
+              $('.u-field-upload-button').css({'opacity': 0});
             },
 
             showErrorMessage: function (message) {

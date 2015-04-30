@@ -98,7 +98,7 @@
                 }
                 &:focus {
                     box-shadow: none;
-                    outline: 0;
+                    outline: 1px;
                     @include show-hover-state();
                 }
             }
