@@ -73,7 +73,7 @@ define([
 
     Annotator.Plugin.Tags.prototype.updateViewer = _.compose(
         function() {
-            // Add aria information for viewing mode.
+            // Add ARIA information for viewing mode.
             $('div.annotator-tags', this.wrapper).attr({
                 'role': 'region',
                 'aria-label': 'tags'

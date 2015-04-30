@@ -235,7 +235,7 @@ define([
         });
 
         describe('TagsPlugin', function () {
-            it('should add aria label information to the viewer', function() {
+            it('should add ARIA label information to the viewer', function() {
                 var tagDiv,
                     annotation = {
                         id: '01',
