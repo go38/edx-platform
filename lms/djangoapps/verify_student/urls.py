@@ -59,11 +59,8 @@ urlpatterns = patterns(
     # (since the user already paid).
     url(
         r'^verify-later/{course}/$'.format(course=settings.COURSE_ID_PATTERN),
-        views.PayAndVerifyView.as_view(),  # pylint: disable=no-value-for-parameter
-        name="verify_student_verify_later",
-        kwargs={
-            'message': PayAndVerifyView.VERIFY_LATER_MSG
-        }
+        views.VerifyLaterView.as_view(),  # pylint: disable=no-value-for-parameter
+        name="verify_student_verify_later"
     ),
 
     # The user is returning to the flow after paying.
