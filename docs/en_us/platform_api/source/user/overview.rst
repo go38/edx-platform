@@ -24,4 +24,4 @@ With the User API, you can complete these tasks.
 * :ref:`Get and update the user's preferences information <Get and Update the
   User's Preferences Information>`
 * :ref:`Get, update or delete a specific preference: <Get Update or Delete a
-  Specific Preference:>`
+  Specific Preference>`
