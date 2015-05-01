@@ -69,7 +69,7 @@ class AccountSettingsTestMixin(EventsTestMixin, WebAppTest):
         return self.relative_path_to_absolute_uri(self.ACCOUNT_SETTINGS_REFERER)
 
     def assert_no_setting_changed_event(self):
-        self.assert_no_matching_events_emitted({'event_type': self.USER_SETTINGS_CHANGED_EVENT_NAME})
+        self.assert_no_matching_events_were_emitted({'event_type': self.USER_SETTINGS_CHANGED_EVENT_NAME})
 
 
 @attr('shard_5')
@@ -130,7 +130,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
 
         actual_events = self.wait_for_events(
             event_filter={'event_type': 'edx.user.settings.viewed'}, number_of_matches=1)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 {
                     'event': {
@@ -257,7 +257,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
         )
 
         actual_events = self.wait_for_events(event_filter=self.settings_changed_event_filter, number_of_matches=2)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 self.expected_settings_change_initiated_event('name', self.username, 'another name'),
                 self.expected_settings_change_initiated_event('name', 'another name', self.username),
@@ -284,7 +284,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
 
         actual_events = self.wait_for_events(
             event_filter=self.settings_change_initiated_event_filter, number_of_matches=2)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 self.expected_settings_changed_event(
                     'email', email, 'me@here.com', username=username, user_id=user_id),
@@ -343,7 +343,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
         )
 
         actual_events = self.wait_for_events(event_filter=self.settings_changed_event_filter, number_of_matches=2)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 self.expected_settings_change_initiated_event('level_of_education', None, 'b'),
                 self.expected_settings_change_initiated_event('level_of_education', 'b', None),
@@ -363,7 +363,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
         )
 
         actual_events = self.wait_for_events(event_filter=self.settings_changed_event_filter, number_of_matches=2)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 self.expected_settings_change_initiated_event('gender', None, 'f'),
                 self.expected_settings_change_initiated_event('gender', 'f', None),
@@ -386,7 +386,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
         )
 
         actual_events = self.wait_for_events(event_filter=self.settings_changed_event_filter, number_of_matches=2)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 self.expected_settings_change_initiated_event('year_of_birth', None, 1980),
                 self.expected_settings_change_initiated_event('year_of_birth', 1980, None),
@@ -417,7 +417,7 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
         )
 
         actual_events = self.wait_for_events(event_filter=self.settings_changed_event_filter, number_of_matches=2)
-        self.assert_event_sequences_match(
+        self.assert_events_match(
             [
                 self.expected_settings_change_initiated_event('language_proficiencies', [], [{'code': 'ps'}], table='student_languageproficiency'),
                 self.expected_settings_change_initiated_event('language_proficiencies', [{'code': 'ps'}], [], table='student_languageproficiency'),

@@ -595,11 +595,11 @@ class OwnLearnerProfilePageTest(LearnerProfileTestMixin, WebAppTest):
             }
         }
 
-        with self.assert_matching_events_emitted(event_filter):
+        with self.assert_matching_events_emitted_in(event_filter):
             profile_page.upload_file(filename='image.jpg')
         self.assertTrue(profile_page.image_upload_success)
 
-        with self.assert_matching_events_emitted(event_filter):
+        with self.assert_matching_events_emitted_in(event_filter):
             self.assertTrue(profile_page.remove_profile_image())
 
         self.assertTrue(profile_page.profile_has_default_image)

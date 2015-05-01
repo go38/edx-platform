@@ -379,16 +379,17 @@ class EventsTestMixin(object):
             for event in events:
                 captured_events.append(event)
 
+    @contextmanager
+    def assert_matching_events_emitted_in(self, event_filter=None, number_of_matches=1):
+        with self.capture_events(event_filter, number_of_matches, []):
+            yield
+
     def wait_for_events(self, start_time=None, event_filter=None, number_of_matches=1):
         if start_time is None:
             start_time = self.start_time
 
-        def has_matching_events():
-            matching_events = self.get_matching_events_from_time(start_time=start_time, event_filter=event_filter)
-            return (len(matching_events) >= number_of_matches, matching_events)
-
         return Promise(
-            has_matching_events,
+            lambda: self.matching_events_were_emitted(start_time=start_time, event_filter=event_filter, number_of_matches=number_of_matches),
             CollectedEventsDescription(
                 'Waiting for {number_of_matches} events to match the filter:\n{event_filter}'.format(
                     number_of_matches=number_of_matches,
@@ -397,6 +398,10 @@ class EventsTestMixin(object):
                 functools.partial(self.get_matching_events_from_time, start_time=start_time, event_filter={})
             )
         ).fulfill()
+
+    def matching_events_were_emitted(self, start_time=None, event_filter=None, number_of_matches=1):
+        matching_events = self.get_matching_events_from_time(start_time=start_time, event_filter=event_filter)
+        return len(matching_events) >= number_of_matches, matching_events
 
     def get_matching_events_from_time(self, start_time=None, event_filter=None):
         if start_time is None:
@@ -431,16 +436,14 @@ class EventsTestMixin(object):
                     matching_events.append(event)
         return matching_events
 
-    @contextmanager
-    def assert_matching_events_emitted(self, event_filter, num_events=1):
-        with self.capture_events(event_filter, num_events, []):
-            yield
+    def assert_matching_events_were_emitted(self, start_time=None, event_filter=None, number_of_matches=1):
+        self.assertTrue(
+            self.matching_events_were_emitted(
+                start_time=start_time, event_filter=event_filter, number_of_matches=number_of_matches
+            )
+        )
 
-    def assert_event_sequences_match(self, expected_events, actual_events):
-        for expected_event, actual_event in zip(expected_events, actual_events):
-            assert_event_matches(expected_event, actual_event)
-
-    def assert_no_matching_events_emitted(self, event_filter):
+    def assert_no_matching_events_were_emitted(self, event_filter):
         matching_events = self.get_matching_events_from_time(event_filter=event_filter)
 
         description = CollectedEventsDescription(
@@ -449,6 +452,10 @@ class EventsTestMixin(object):
         )
 
         self.assertEquals(len(matching_events), 0, description)
+
+    def assert_events_match(self, expected_events, actual_events):
+        for expected_event, actual_event in zip(expected_events, actual_events):
+            assert_event_matches(expected_event, actual_event)
 
     def relative_path_to_absolute_uri(self, relative_path):
         return urlparse.urljoin(BASE_URL, relative_path)
