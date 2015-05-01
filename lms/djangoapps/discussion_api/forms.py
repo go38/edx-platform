@@ -29,5 +29,5 @@ class ThreadListGetForm(Form):
         return self.cleaned_data.get("page") or 1
 
     def clean_page_size(self):
-        """Return given valid page_size or default of 1"""
+        """Return given valid page_size (capped at 100) or default of 10"""
         return min(self.cleaned_data.get("page_size") or 10, 100)

@@ -31,7 +31,7 @@ class _ViewMixin(object):
         """
         Get the course descriptor, raising Http404 if the course is not found,
         the user cannot access forums for the course, or the discussion tab is
-        disabled for the course. course_id_str must be valid.
+        disabled for the course.
         """
         course = get_course_with_access(user, 'load_forum', course_key)
         if not any([isinstance(tab, DiscussionTab) for tab in course.tabs]):
