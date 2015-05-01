@@ -297,7 +297,7 @@ class CoursewareSearchIndexer(SearchIndexerBase):
     @classmethod
     def _get_location_info(cls, normalized_structure_key):
         """ Builds location info dictionary """
-        return {"course": unicode(normalized_structure_key)}
+        return {"course": unicode(normalized_structure_key), "org": normalized_structure_key.org}
 
     @classmethod
     def do_course_reindex(cls, modulestore, course_key):
