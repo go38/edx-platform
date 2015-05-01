@@ -9,6 +9,7 @@ import operator
 import pprint
 import requests
 import os
+import urlparse
 from contextlib import contextmanager
 from datetime import datetime
 from path import path
@@ -450,7 +451,7 @@ class EventsTestMixin(object):
         self.assertEquals(len(matching_events), 0, description)
 
     def relative_path_to_absolute_uri(self, relative_path):
-        return '/'.join([BASE_URL.rstrip('/'), relative_path.lstrip('/')])
+        return urlparse.urljoin(BASE_URL, relative_path)
 
     def event_filter_to_descriptive_string(self, event_filter):
         message = ''
